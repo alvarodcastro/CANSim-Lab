@@ -10,7 +10,6 @@ RUN pip install flask flask-socketio python-can eventlet
 WORKDIR /app
 COPY app.py .
 COPY templates/ templates/
-COPY static/ static/
 
 EXPOSE 5000
 
