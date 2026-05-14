@@ -1,0 +1,92 @@
+version: '3.8'
+
+# ============================================================
+#  CANSim Lab - Docker Compose
+# ============================================================
+#
+#  Prerequisites (run once on host):
+#    sudo bash scripts/setup-vcan.sh
+#
+#  Start lab:
+#    docker-compose up --build
+#
+#  Dashboard:
+#    http://localhost:5000
+#
+#  Monitor CAN traffic on host:
+#    candump vcan0
+#
+#  Inject arbitrary frames:
+#    cansend vcan0 0C9#0BB80064000000000    (RPM=3000, Speed=100)
+# ============================================================
+
+services:
+
+  # ── ECU Traffic Generator ─────────────────────────────────
+  ecu-simulator:
+    build:
+      context: ./ecu-simulator
+    container_name: can-ecu-simulator
+    restart: unless-stopped
+
+    # Access the host's vcan0 interface
+    network_mode: host
+
+    # Required capabilities for raw CAN socket access
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    environment:
+      - PYTHONUNBUFFERED=1
+
+    volumes:
+      - ./ecu-simulator:/app:ro
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    labels:
+      com.can-lab.role: "ecu-simulator"
+      com.can-lab.description: "Simulates vehicle ECU network on vcan0"
+
+  # ── Car Dashboard ─────────────────────────────────────────
+  car-dashboard:
+    build:
+      context: ./car-dashboard
+    container_name: can-car-dashboard
+    restart: unless-stopped
+
+    # Must also use host network to reach vcan0
+    network_mode: host
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+
+    # Copy ecu_definitions.py into dashboard so it can decode frames
+    volumes:
+      - ./car-dashboard:/app:ro
+
+    ports:
+      - "5000:5000"
+
+    depends_on:
+      - ecu-simulator
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    labels:
+      com.can-lab.role: "car-dashboard"
+      com.can-lab.description: "Visual vehicle dashboard + CAN control interface"
