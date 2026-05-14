@@ -43,12 +43,11 @@ and a live visual vehicle dashboard.
 
 ## Prerequisites
 
-- Linux host with SocketCAN support (vcan) or WSL2 on Windows
-- Docker Engine with Compose v2 (Docker Desktop is fine)
-- `can-utils` installed on the host for monitoring traffic (optional but recommended)
+- Linux host with SocketCAN support
+- Docker Engine
+- `can-utils` installed on the host for monitoring traffic and playing
 
-> Note: The virtual CAN interface `vcan0` must be created on the host OS. On Windows,
-> run the host setup from WSL2. The containers will connect to `vcan0` on the host.
+> Note: The virtual CAN interface `vcan0` must be created on the host OS. The containers will connect to `vcan0` on the host. Use the [[setup-vcan.sh]] script for that purpose.
 
 ## Quick Start
 
